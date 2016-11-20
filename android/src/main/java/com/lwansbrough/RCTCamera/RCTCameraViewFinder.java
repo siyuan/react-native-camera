@@ -7,8 +7,12 @@ package com.lwansbrough.RCTCamera;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.hardware.Camera.Face;
+import android.hardware.Camera.FaceDetectionListener;
 import android.view.TextureView;
+import android.view.ViewGroup.LayoutParams;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
@@ -34,6 +38,20 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     private boolean _isStarting;
     private boolean _isStopping;
     private Camera _camera;
+    private FaceOverlayView mFaceView;
+
+    /**
+     * Sets the faces for the overlay view, so it can be updated
+     * and the face overlays will be drawn again.
+     */
+    private FaceDetectionListener faceDetectionListener = new FaceDetectionListener() {
+        @Override
+        public void onFaceDetection(Face[] faces, Camera camera) {
+            Log.d("onFaceDetection", "Number of Faces:" + faces.length);
+            // Update the view now!
+            mFaceView.setFaces(faces);
+        }
+    };
 
     // concurrency lock for barcode scanner to avoid flooding the runtime
     public static volatile boolean barcodeScannerTaskLock = false;
@@ -43,6 +61,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
     public RCTCameraViewFinder(Context context, int type) {
         super(context);
+        mFaceView = new FaceOverlayView(context);
+        //addContentView(mFaceView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         this.setSurfaceTextureListener(this);
         this._cameraType = type;
         this.initBarcodeReader(RCTCamera.getInstance().getBarCodeTypes());
@@ -148,6 +168,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
                 _camera.setParameters(parameters);
                 _camera.setPreviewTexture(_surfaceTexture);
+		_camera.setFaceDetectionListener(faceDetectionListener);
+		_camera.startFaceDetection();
                 _camera.startPreview();
                 // send previews to `onPreviewFrame`
                 _camera.setPreviewCallback(this);

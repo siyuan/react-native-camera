@@ -10,8 +10,11 @@ import android.view.OrientationEventListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.View;
+import android.graphics.Color;
+import android.widget.LinearLayout;
 
 import java.util.List;
+import java.beans.PropertyChangeSupport;
 
 public class RCTCameraView extends ViewGroup {
     private final OrientationEventListener _orientationListener;
@@ -23,6 +26,10 @@ public class RCTCameraView extends ViewGroup {
     private String _captureQuality = "high";
     private int _torchMode = -1;
     private int _flashMode = -1;
+    private TestView testV;
+    private FaceOverlayView mFaceView = null;
+    private int mOrientation;
+    private int mOrientationCompensation;
 
     public RCTCameraView(Context context) {
         super(context);
@@ -35,6 +42,19 @@ public class RCTCameraView extends ViewGroup {
                 if (setActualDeviceOrientation(_context)) {
                     layoutViewFinder();
                 }
+                // We keep the last known orientation. So if the user first orient
+                // the camera then point the camera to floor or sky, we still have
+                // the correct orientation.
+                if (orientation == ORIENTATION_UNKNOWN) return;
+                mOrientation = Util.roundOrientation(orientation, mOrientation);
+                // When the screen is unlocked, display rotation may change. Always
+                // calculate the up-to-date orientationCompensation.
+                int orientationCompensation = mOrientation;
+                    //+ Util.getDisplayRotation(CameraActivity.this);
+                if (mOrientationCompensation != orientationCompensation) {
+                    mOrientationCompensation = orientationCompensation;
+                    mFaceView.setOrientation(mOrientationCompensation);
+                }
             }
         };
 
@@ -43,21 +63,29 @@ public class RCTCameraView extends ViewGroup {
         } else {
             _orientationListener.disable();
         }
+        testV = new TestView(_context);
+        this.testV.layout(this.getLeft(), this.getTop(), this.getRight(), this.getBottom());
+        //addView(testV);
+
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         layoutViewFinder(left, top, right, bottom);
+        this.testV.layout(this.getLeft(), this.getTop(), this.getRight(), this.getBottom());
+        this.mFaceView.layout(this.getLeft(), this.getTop(), this.getRight(), this.getBottom());
     }
 
-    @Override
-    public void onViewAdded(View child) {
-        if (this._viewFinder == child) return;
-        // remove and readd view to make sure it is in the back.
-        // @TODO figure out why there was a z order issue in the first place and fix accordingly.
-        this.removeView(this._viewFinder);
-        this.addView(this._viewFinder, 0);
-    }
+//    @Override
+//    public void onViewAdded(View child) {
+//        if (this._viewFinder == child) return;
+//        // remove and readd view to make sure it is in the back.
+//        // @TODO figure out why there was a z order issue in the first place and fix accordingly.
+//        this.removeView(this._viewFinder);
+//        this.addView(this._viewFinder, 0);
+//        if (this.testV == child) return;
+//        this.addView(this.testV, 1);
+//    }
 
     public void setAspect(int aspect) {
         this._aspect = aspect;
@@ -77,6 +105,10 @@ public class RCTCameraView extends ViewGroup {
                 _viewFinder.setFlashMode(this._torchMode);
             }
             addView(_viewFinder);
+            //addView(testV);
+            mFaceView = _viewFinder.getFaceView();
+            this.mFaceView.layout(this.getLeft(), this.getTop(), this.getRight(), this.getBottom());
+            addView(mFaceView);
         }
     }
 

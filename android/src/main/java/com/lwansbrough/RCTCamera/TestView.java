@@ -11,12 +11,11 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.hardware.Camera.Face;
 import android.view.View;
-import android.util.Log;
 
 /**
  * This class is a simple View to display the faces.
  */
-public class FaceOverlayView extends View {
+public class TestView extends View {
 
     private Paint mPaint;
     private Paint mTextPaint;
@@ -24,7 +23,7 @@ public class FaceOverlayView extends View {
     private int mOrientation;
     private Face[] mFaces;
 
-    public FaceOverlayView(Context context) {
+    public TestView(Context context) {
         super(context);
         initialize();
     }
@@ -63,6 +62,7 @@ public class FaceOverlayView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        /*
         if (mFaces != null && mFaces.length > 0) {
             Matrix matrix = new Matrix();
             Util.prepareMatrix(matrix, false, mDisplayOrientation, getWidth(), getHeight());
@@ -75,12 +75,17 @@ public class FaceOverlayView extends View {
                 matrix.mapRect(rectF);
                 canvas.drawRect(rectF, mPaint);
                 canvas.drawText("Score " + face.score, rectF.right, rectF.top, mTextPaint);
-                Log.d("onFaceDetection", "left:" + rectF.left);
-                Log.d("onFaceDetection", "top:" + rectF.top);
-                Log.d("onFaceDetection", "right:" + rectF.right);
-                Log.d("onFaceDetection", "bottom:" + rectF.bottom);
-                Log.d("onFaceDetection", "xxx score:" + face.score);
             }
+            canvas.restore();
+        }
+        */
+        for (int i=0; i<10; i++) {
+            canvas.save();
+            RectF oval1=new RectF(150,20,580 + i * 10,500 + i * 10);
+            canvas.drawRect(oval1, mPaint);
+
+            RectF oval2=new RectF(250,120,680 + i * 10,1000 + i * 10);
+            canvas.drawRect(oval2, mPaint);
             canvas.restore();
         }
     }

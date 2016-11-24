@@ -40,6 +40,9 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     private Camera _camera;
     private FaceOverlayView mFaceView;
 
+    public FaceOverlayView getFaceView() {
+        return mFaceView;
+    }
     /**
      * Sets the faces for the overlay view, so it can be updated
      * and the face overlays will be drawn again.
@@ -63,6 +66,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         super(context);
         mFaceView = new FaceOverlayView(context);
         //addContentView(mFaceView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        //this.mFaceView.layout(this.getLeft(), this.getTop(), this.getRight(), this.getBottom());
         this.setSurfaceTextureListener(this);
         this._cameraType = type;
         this.initBarcodeReader(RCTCamera.getInstance().getBarCodeTypes());

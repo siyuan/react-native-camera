@@ -49,7 +49,7 @@ public class RCTCameraView extends ViewGroup {
                 mOrientation = Util.roundOrientation(orientation, mOrientation);
                 // When the screen is unlocked, display rotation may change. Always
                 // calculate the up-to-date orientationCompensation.
-                int orientationCompensation = mOrientation;
+                int orientationCompensation = mOrientation + getDeviceOrientation(_context);
                     //+ Util.getDisplayRotation(CameraActivity.this);
                 if (mOrientationCompensation != orientationCompensation) {
                     mOrientationCompensation = orientationCompensation;

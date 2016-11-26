@@ -43,6 +43,10 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     public FaceOverlayView getFaceView() {
         return mFaceView;
     }
+
+    public Camera getCamera() {
+        return _camera;
+    }
     /**
      * Sets the faces for the overlay view, so it can be updated
      * and the face overlays will be drawn again.

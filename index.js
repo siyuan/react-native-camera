@@ -7,6 +7,7 @@ import {
   StyleSheet,
   requireNativeComponent,
   View,
+  Alert,
 } from 'react-native';
 
 const CameraManager = NativeModules.CameraManager || NativeModules.CameraModule;
@@ -92,6 +93,7 @@ export default class Camera extends Component {
     ]),
     keepAwake: PropTypes.bool,
     onBarCodeRead: PropTypes.func,
+    onFaceDetection: PropTypes.func,
     barcodeScannerEnabled: PropTypes.bool,
     onFocusChanged: PropTypes.func,
     onZoomChanged: PropTypes.func,
@@ -144,8 +146,22 @@ export default class Camera extends Component {
     };
   }
 
+  _addCameraFaceDetectionListener() {
+    const { onFaceDetection } = this.props
+    if (onFaceDetection) {
+      DeviceEventEmitter.addListener('CameraFaceDetection', (data) => {
+        // handle event.
+        if (this.props.onFaceDetection) {
+          this.props.onFaceDetection(data)
+        }
+        //Alert.alert(data.score);
+      });
+    }
+  }
+
   async componentWillMount() {
     this._addOnBarCodeReadListener()
+    this._addCameraFaceDetectionListener()
 
     let { captureMode } = convertNativeProps({ captureMode: this.props.captureMode })
     let hasVideoAndAudio = this.props.captureAudio && captureMode === Camera.constants.CaptureMode.video
@@ -170,6 +186,7 @@ export default class Camera extends Component {
     if (onBarCodeRead && !newProps.onBarCodeRead) {
       this._addOnBarCodeReadListener(newProps)
     }
+    this._addCameraFaceDetectionListener()
   }
 
   _addOnBarCodeReadListener(props) {

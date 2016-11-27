@@ -39,6 +39,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     private boolean _isStopping;
     private Camera _camera;
     private FaceOverlayView mFaceView;
+    private Face[] mFaces = {};
 
     public FaceOverlayView getFaceView() {
         return mFaceView;
@@ -55,10 +56,23 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         @Override
         public void onFaceDetection(Face[] faces, Camera camera) {
             Log.d("onFaceDetection", "Number of Faces:" + faces.length);
+            mFaces = faces;
             // Update the view now!
             mFaceView.setFaces(faces);
         }
     };
+
+    private void sendFaceDetectionEvent() {
+        // Face detaction
+        ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
+        WritableMap faceMap = Arguments.createMap();
+        faceMap.putString("num", Integer.toString(mFaces.length));
+
+        // only process 1 face now.
+        if (mFaces.length > 0)
+            faceMap.putString("score", Integer.toString(mFaces[0].score));
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("CameraFaceDetection", faceMap);
+    }
 
     // concurrency lock for barcode scanner to avoid flooding the runtime
     public static volatile boolean barcodeScannerTaskLock = false;
@@ -80,6 +94,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         _surfaceTexture = surface;
         startCamera();
+        sendFaceDetectionEvent();
     }
 
     @Override
@@ -95,6 +110,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        sendFaceDetectionEvent();
     }
 
     public double getRatio() {
@@ -176,8 +192,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
                 _camera.setParameters(parameters);
                 _camera.setPreviewTexture(_surfaceTexture);
-		_camera.setFaceDetectionListener(faceDetectionListener);
-		_camera.startFaceDetection();
+                _camera.setFaceDetectionListener(faceDetectionListener);
+                _camera.startFaceDetection();
                 _camera.startPreview();
                 // send previews to `onPreviewFrame`
                 _camera.setPreviewCallback(this);
